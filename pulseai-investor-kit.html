@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PulseAI — Kit Investisseurs</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #050810; --surface: #0d1321; --green: #00f5a0; --cyan: #00d4ff;
+    --amber: #f59e0b; --purple: #a78bfa; --white: #f0f6ff; --muted: #4a5568; --light: #94a3b8;
+    --border: rgba(255,255,255,0.07);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--white); font-family:'DM Sans',sans-serif; min-height:100vh; }
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image: linear-gradient(rgba(0,245,160,0.025) 1px,transparent 1px), linear-gradient(90deg,rgba(0,245,160,0.025) 1px,transparent 1px);
+    background-size:50px 50px;
+  }
+  .container { max-width:960px; margin:0 auto; padding:60px 24px; position:relative; z-index:1; }
+  .header { text-align:center; margin-bottom:64px; }
+  .logo { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:24px; }
+  .logo-text { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; }
+  .logo-text .pulse { color:var(--white); }
+  .logo-text .ai { background:linear-gradient(90deg,var(--green),var(--cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .header h1 { font-family:'Syne',sans-serif; font-size:clamp(28px,4vw,44px); font-weight:800; letter-spacing:-1px; margin-bottom:12px; }
+  .header p { color:var(--light); font-size:16px; max-width:520px; margin:0 auto; font-weight:300; line-height:1.6; }
+
+  /* TABS */
+  .tabs { display:flex; gap:8px; margin-bottom:32px; background:var(--surface); border-radius:14px; padding:6px; border:1px solid var(--border); }
+  .tab { flex:1; padding:10px; border:none; background:transparent; color:var(--muted); font-family:'Syne',sans-serif; font-size:13px; font-weight:600; border-radius:10px; cursor:pointer; transition:all .25s; }
+  .tab.active { background:linear-gradient(90deg,var(--green),var(--cyan)); color:#050810; }
+
+  /* PANELS */
+  .panel { display:none; animation:fadeIn .3s ease; }
+  .panel.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+  /* EMAIL CARD */
+  .email-card { background:var(--surface); border:1px solid var(--border); border-radius:20px; overflow:hidden; margin-bottom:20px; }
+  .email-header { padding:20px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .email-type { display:flex; align-items:center; gap:10px; }
+  .type-badge { padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; font-family:'Syne',sans-serif; letter-spacing:1px; }
+  .badge-angel { background:rgba(0,245,160,0.1); color:var(--green); border:1px solid rgba(0,245,160,0.2); }
+  .badge-vc { background:rgba(0,212,255,0.1); color:var(--cyan); border:1px solid rgba(0,212,255,0.2); }
+  .badge-incub { background:rgba(245,158,11,0.1); color:var(--amber); border:1px solid rgba(245,158,11,0.2); }
+  .email-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; color:var(--white); }
+  .copy-btn { background:rgba(0,245,160,0.08); border:1px solid rgba(0,245,160,0.2); color:var(--green); padding:6px 14px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .2s; }
+  .copy-btn:hover { background:rgba(0,245,160,0.16); }
+  .copy-btn.copied { background:rgba(0,245,160,0.2); color:var(--green); }
+  .email-body { padding:24px; }
+  .email-subject { font-size:12px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; }
+  .subject-line { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; color:var(--white); margin-bottom:20px; padding:10px 14px; background:rgba(0,245,160,0.04); border-radius:8px; border-left:3px solid var(--green); }
+  .email-content { font-size:14px; color:var(--light); line-height:1.8; white-space:pre-wrap; font-weight:300; }
+  .highlight { color:var(--white); font-weight:500; }
+
+  /* CHECKLIST */
+  .checklist { display:flex; flex-direction:column; gap:12px; }
+  .check-item { display:flex; align-items:flex-start; gap:14px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 20px; transition:all .2s; }
+  .check-item:hover { border-color:rgba(0,245,160,0.2); }
+  .check-box { width:22px; height:22px; border-radius:6px; border:2px solid var(--border); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; transition:all .2s; }
+  .check-box.done { background:var(--green); border-color:var(--green); }
+  .check-box.done::after { content:'✓'; font-size:12px; color:#050810; font-weight:700; }
+  .check-label { font-size:14px; color:var(--white); font-weight:500; margin-bottom:3px; }
+  .check-desc { font-size:12px; color:var(--muted); line-height:1.5; }
+
+  /* TARGETS TABLE */
+  .targets-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+  .target-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; transition:all .2s; }
+  .target-card:hover { border-color:rgba(0,245,160,0.2); transform:translateY(-2px); }
+  .target-icon { font-size:28px; margin-bottom:10px; }
+  .target-name { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--white); margin-bottom:4px; }
+  .target-type { font-size:11px; color:var(--muted); margin-bottom:10px; }
+  .target-focus { font-size:12px; color:var(--light); line-height:1.5; }
+  .target-tag { display:inline-block; margin-top:8px; padding:3px 10px; border-radius:20px; font-size:10px; font-weight:600; }
+
+  /* SECTION LABEL */
+  .sec-label { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--green); margin-bottom:16px; font-weight:600; }
+
+  @media(max-width:640px){ .targets-grid{grid-template-columns:1fr;} .tabs{flex-direction:column;} }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo">
+      <svg width="26" height="26" viewBox="0 0 64 64" fill="none">
+        <circle cx="32" cy="32" r="30" stroke="url(#g)" stroke-width="2.5"/>
+        <polyline points="8,32 18,32 22,20 28,44 34,28 38,36 42,32 56,32" stroke="url(#g)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#00f5a0"/><stop offset="100%" stop-color="#00d4ff"/></linearGradient></defs>
+      </svg>
+      <span class="logo-text"><span class="pulse">Pulse</span><span class="ai">AI</span></span>
+    </div>
+    <h1>Kit Investisseurs</h1>
+    <p>Emails prêts à envoyer pour Business Angels, Venture Capital et Incubateurs. Copiez, personnalisez, envoyez.</p>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('emails')">📧 Emails</button>
+    <button class="tab" onclick="showTab('targets')">🎯 Cibles</button>
+    <button class="tab" onclick="showTab('checklist')">✅ Checklist</button>
+  </div>
+
+  <!-- EMAILS PANEL -->
+  <div class="panel active" id="panel-emails">
+
+    <!-- ANGEL -->
+    <div class="email-card">
+      <div class="email-header">
+        <div class="email-type">
+          <span class="type-badge badge-angel">BUSINESS ANGEL</span>
+          <span class="email-title">Email d'introduction</span>
+        </div>
+        <button class="copy-btn" onclick="copyEmail('angel')">Copier</button>
+      </div>
+      <div class="email-body" id="angel">
+        <div class="email-subject">Objet de l'email</div>
+        <div class="subject-line">PulseAI — La santé IA pour 10M+ personnes · Opportunité seed 500K€</div>
+        <div class="email-content"><span class="highlight">Bonjour [Prénom],</span>
+
+Je me permets de vous contacter car votre parcours d'investisseur dans la HealthTech m'a beaucoup inspiré.
+
+Je suis [Votre nom], fondateur de <span class="highlight">PulseAI</span> — une application d'intelligence artificielle qui centralise le suivi médical, la santé mentale et la nutrition pour des millions de personnes.
+
+<span class="highlight">Le problème que nous résolvons :</span>
+Des centaines de millions de personnes n'ont pas accès à un suivi de santé de qualité. Les ordonnances se perdent, les rendez-vous se manquent, et les informations médicales restent incompréhensibles.
+
+<span class="highlight">Notre solution :</span>
+PulseAI propose un assistant IA disponible 24h/24, un tableau de bord médical centralisé et des fiches maladies en langage simple — le tout dans une seule application.
+
+<span class="highlight">Traction actuelle :</span>
+→ Prototype fonctionnel développé
+→ Landing page bilingue FR/EN en ligne
+→ Marché adressable : 80 Mrd $ (santé IA mondiale)
+
+<span class="highlight">Ce que nous cherchons :</span>
+500 000 € en seed pour le lancement Q3 2026, avec une projection de 1,75 M€ de revenus en an 1.
+
+Seriez-vous disponible pour un appel de 20 minutes cette semaine ou la suivante ?
+
+Je serais ravi de vous partager notre pitch deck complet.
+
+Cordialement,
+<span class="highlight">[Votre nom]</span>
+Fondateur, PulseAI
+contact@pulseai.health</div>
+      </div>
+    </div>
+
+    <!-- VC -->
+    <div class="email-card">
+      <div class="email-header">
+        <div class="email-type">
+          <span class="type-badge badge-vc">VENTURE CAPITAL</span>
+          <span class="email-title">Email cold outreach</span>
+        </div>
+        <button class="copy-btn" onclick="copyEmail('vc')">Copier</button>
+      </div>
+      <div class="email-body" id="vc">
+        <div class="email-subject">Objet de l'email</div>
+        <div class="subject-line">PulseAI · HealthTech IA · Seed 500K€ · Marché 80Mrd$</div>
+        <div class="email-content"><span class="highlight">Bonjour [Prénom],</span>
+
+<span class="highlight">PulseAI</span> est une application IA de santé personnalisée qui s'adresse à 4,5 milliards d'utilisateurs potentiels d'apps de santé dans le monde.
+
+<span class="highlight">Le marché :</span> La santé IA représente un marché de 500 Mrd $ en croissance de 8,3%/an. Notre segment adressable (SAM) est estimé à 80 Mrd $.
+
+<span class="highlight">Le produit :</span>
+• Assistant IA santé (santé mentale, nutrition, maladies chroniques)
+• Suivi médical centralisé (RDV, médicaments, indicateurs)
+• Fiches maladies générées par IA en langage accessible
+• Disponible 24/7, multilingue, pour tous les profils d'utilisateurs
+
+<span class="highlight">Business model diversifié :</span>
+Freemium (9,99€/mois) + B2B cliniques (500–5 000€/mois) + publicités santé + données anonymisées RGPD.
+
+<span class="highlight">Projections :</span>
+An 1 → 1,75 M€ | An 2 → 6,2 M€ | An 3 → 18,5 M€
+
+<span class="highlight">L'équipe :</span> [Votre présentation en 2 lignes]
+
+Nous levons <span class="highlight">500 000 €</span> en seed pour le lancement mobile Q3 2026.
+
+Pitch deck disponible sur demande. Seriez-vous ouvert à un échange de 30 minutes ?
+
+<span class="highlight">[Votre nom]</span>
+contact@pulseai.health</div>
+      </div>
+    </div>
+
+    <!-- INCUBATEUR -->
+    <div class="email-card">
+      <div class="email-header">
+        <div class="email-type">
+          <span class="type-badge badge-incub">INCUBATEUR</span>
+          <span class="email-title">Candidature programme</span>
+        </div>
+        <button class="copy-btn" onclick="copyEmail('incub')">Copier</button>
+      </div>
+      <div class="email-body" id="incub">
+        <div class="email-subject">Objet de l'email</div>
+        <div class="subject-line">Candidature [Nom du programme] — PulseAI, HealthTech IA</div>
+        <div class="email-content"><span class="highlight">Bonjour,</span>
+
+Je souhaite candidater au programme [Nom du programme] avec mon projet <span class="highlight">PulseAI</span>, une application d'intelligence artificielle dédiée à la santé pour tous.
+
+<span class="highlight">En une phrase :</span>
+PulseAI est l'assistant IA de santé qui centralise le suivi médical, accompagne la santé mentale et rend l'information médicale accessible à tous, partout dans le monde.
+
+<span class="highlight">Le problème :</span>
+Des millions de personnes souffrent d'un suivi médical fragmenté, d'un manque d'accès à la santé mentale et d'informations médicales incompréhensibles.
+
+<span class="highlight">Notre stade de développement :</span>
+✓ Prototype fonctionnel avec IA intégrée
+✓ Identité de marque et landing page bilingue
+✓ Business model validé (4 sources de revenus)
+✓ Pitch deck complet disponible
+
+<span class="highlight">Ce que nous cherchons dans ce programme :</span>
+• Accompagnement pour la stratégie go-to-market
+• Accès au réseau médical et cliniques partenaires
+• Support pour la conformité RGPD et certifications santé
+• Introduction à des investisseurs HealthTech
+
+<span class="highlight">Notre ambition :</span>
+Atteindre 1 million d'utilisateurs en 18 mois et devenir la référence mondiale de la santé IA accessible.
+
+Je reste disponible pour tout entretien ou informations complémentaires.
+
+<span class="highlight">[Votre nom]</span>
+Fondateur, PulseAI
+contact@pulseai.health</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TARGETS PANEL -->
+  <div class="panel" id="panel-targets">
+    <div class="sec-label">Business Angels — France & International</div>
+    <div class="targets-grid" style="margin-bottom:32px">
+      <div class="target-card">
+        <div class="target-name">Xavier Niel</div>
+        <div class="target-type">Business Angel · France</div>
+        <div class="target-focus">Fondateur Iliad/Free, investit dans la HealthTech et les startups tech à impact</div>
+        <span class="target-tag" style="background:rgba(0,245,160,0.1);color:#00f5a0">Station F</span>
+      </div>
+      <div class="target-card">
+        <div class="target-name">Marc Simoncini</div>
+        <div class="target-type">Business Angel · France</div>
+        <div class="target-focus">Fondateur Meetic, très actif en santé numérique et bien-être</div>
+        <span class="target-tag" style="background:rgba(0,245,160,0.1);color:#00f5a0">Jaïna Capital</span>
+      </div>
+      <div class="target-card">
+        <div class="target-name">Esther Dyson</div>
+        <div class="target-type">Business Angel · USA</div>
+        <div class="target-focus">Spécialiste HealthTech mondiale, investit dans la prévention et la santé digitale</div>
+        <span class="target-tag" style="background:rgba(0,245,160,0.1);color:#00f5a0">Way to Wellville</span>
+      </div>
+    </div>
+
+    <div class="sec-label">Fonds Venture Capital — HealthTech</div>
+    <div class="targets-grid" style="margin-bottom:32px">
+      <div class="target-card">
+        <div class="target-name">Partech</div>
+        <div class="target-type">VC · Paris / San Francisco</div>
+        <div class="target-focus">Investi dans des centaines de startups tech dont plusieurs HealthTech européennes</div>
+        <span class="target-tag" style="background:rgba(0,212,255,0.1);color:#00d4ff">Seed à Series B</span>
+      </div>
+      <div class="target-card">
+        <div class="target-name">Elaia Partners</div>
+        <div class="target-type">VC · France</div>
+        <div class="target-focus">Focus deep tech et digital health, très actif sur les startups IA en France</div>
+        <span class="target-tag" style="background:rgba(0,212,255,0.1);color:#00d4ff">Seed à Series A</span>
+      </div>
+      <div class="target-card">
+        <div class="target-name">360 Capital</div>
+        <div class="target-type">VC · Europe</div>
+        <div class="target-focus">Portfolio santé digital fort, investit en seed et early stage en Europe</div>
+        <span class="target-tag" style="background:rgba(0,212,255,0.1);color:#00d4ff">Early Stage</span>
+      </div>
+    </div>
+
+    <div class="sec-label">Incubateurs & Accélérateurs</div>
+    <div class="targets-grid">
+      <div class="target-card">
+        <div class="target-name">Station F</div>
+        <div class="target-type">Incubateur · Paris</div>
+        <div class="target-focus">Le plus grand campus startup au monde, programmes spécialisés HealthTech</div>
+        <span class="target-tag" style="background:rgba(245,158,11,0.1);color:#f59e0b">Paris</span>
+      </div>
+      <div class="target-card">
+        <div class="target-name">Bpifrance Le Hub</div>
+        <div class="target-type">Accélérateur public · France</div>
+        <div class="target-focus">Programme d'accélération pour startups innovantes, accès aux aides publiques</div>
+        <span class="target-tag" style="background:rgba(245,158,11,0.1);color:#f59e0b">Financement public</span>
+      </div>
+      <div class="target-card">
+        <div class="target-name">Y Combinator</div>
+        <div class="target-type">Accélérateur · San Francisco</div>
+        <div class="target-focus">Le meilleur accélérateur mondial, alumni Airbnb, Stripe, Dropbox</div>
+        <span class="target-tag" style="background:rgba(245,158,11,0.1);color:#f59e0b">125K$ + réseau</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKLIST PANEL -->
+  <div class="panel" id="panel-checklist">
+    <div class="sec-label" style="margin-bottom:20px">Avant d'envoyer — checklist complète</div>
+    <div class="checklist" id="checklist">
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box"></div>
+        <div><div class="check-label">Pitch deck finalisé et exporté en PDF</div><div class="check-desc">Vérifier que toutes les slides sont lisibles et que les chiffres sont cohérents</div></div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box"></div>
+        <div><div class="check-label">Landing page en ligne et testée</div><div class="check-desc">S'assurer que le bouton "Commencer" fonctionne et que la page se charge rapidement</div></div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box"></div>
+        <div><div class="check-label">Adresse email professionnelle créée</div><div class="check-desc">contact@pulseai.health ou fondateur@pulseai.health — éviter Gmail pour les investisseurs</div></div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box"></div>
+        <div><div class="check-label">Profil LinkedIn mis à jour</div><div class="check-desc">Ajouter "Fondateur @ PulseAI | HealthTech IA" et lien vers la landing page</div></div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box"></div>
+        <div><div class="check-label">Recherche personnalisée sur chaque investisseur</div><div class="check-desc">Mentionner une startup de leur portfolio, leur thèse d'investissement, un article récent</div></div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box"></div>
+        <div><div class="check-label">Personnaliser [Prénom] et [Votre nom] dans chaque email</div><div class="check-desc">Ne jamais envoyer un email avec des crochets non remplis</div></div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box"></div>
+        <div><div class="check-label">Créer un tableur de suivi des contacts</div><div class="check-desc">Colonnes : Nom, Type, Date envoi, Statut, Relance prévue</div></div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box"></div>
+        <div><div class="check-label">Préparer la relance J+7</div><div class="check-desc">Un email court de 3 lignes si pas de réponse après 7 jours</div></div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box"></div>
+        <div><div class="check-label">Préparer un one-pager d'une page</div><div class="check-desc">Résumé visuel de PulseAI à attacher en pièce jointe (PDF, 1 page)</div></div>
+      </div>
+      <div class="check-item" onclick="toggleCheck(this)">
+        <div class="check-box"></div>
+        <div><div class="check-label">Objectif : 20 emails envoyés la première semaine</div><div class="check-desc">Taux de réponse moyen = 5–10%. 20 emails = 1–2 rendez-vous potentiels</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['emails','targets','checklist'][i]===name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+function copyEmail(id) {
+  const el = document.getElementById(id);
+  const text = el.querySelector('.email-content').innerText;
+  const subj = el.querySelector('.subject-line').innerText;
+  navigator.clipboard.writeText('Objet : ' + subj + '\n\n' + text);
+  const btn = el.closest('.email-card').querySelector('.copy-btn');
+  btn.textContent = '✓ Copié !';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000);
+}
+
+function toggleCheck(item) {
+  item.querySelector('.check-box').classList.toggle('done');
+}
+</script>
+</body>
+</html>

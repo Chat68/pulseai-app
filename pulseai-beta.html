@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PulseAI — Rejoins la Bêta</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:#050810; --surface:#0d1321; --green:#00f5a0; --cyan:#00d4ff;
+    --white:#f0f6ff; --muted:#4a5568; --light:#94a3b8; --border:rgba(255,255,255,0.07);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--white); font-family:'DM Sans',sans-serif; overflow-x:hidden; }
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:linear-gradient(rgba(0,245,160,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,160,0.025) 1px,transparent 1px);
+    background-size:50px 50px;
+  }
+
+  /* NAV */
+  nav { position:fixed; top:0; left:0; right:0; z-index:100; padding:16px 40px; display:flex; align-items:center; justify-content:space-between; background:rgba(5,8,16,0.9); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+  .logo { display:flex; align-items:center; gap:10px; }
+  .logo-text { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; }
+  .logo-text .p { color:var(--white); } .logo-text .a { background:linear-gradient(90deg,var(--green),var(--cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .nav-badge { background:rgba(0,245,160,0.1); border:1px solid rgba(0,245,160,0.2); color:var(--green); padding:5px 14px; border-radius:20px; font-size:12px; font-weight:600; }
+
+  /* HERO */
+  .hero { min-height:100vh; display:flex; align-items:center; justify-content:center; text-align:center; padding:120px 24px 60px; position:relative; z-index:1; }
+  .hero-glow { position:absolute; width:700px; height:700px; border-radius:50%; background:radial-gradient(circle,rgba(0,245,160,0.06),transparent 70%); pointer-events:none; }
+  .hero-counter { display:inline-flex; align-items:center; gap:8px; background:rgba(0,245,160,0.08); border:1px solid rgba(0,245,160,0.2); border-radius:20px; padding:6px 18px; font-size:13px; color:var(--green); margin-bottom:28px; font-weight:500; animation:fadeUp .6s ease both; }
+  .dot { width:7px; height:7px; border-radius:50%; background:var(--green); animation:blink 1.5s ease infinite; }
+  .hero-title { font-family:'Syne',sans-serif; font-size:clamp(36px,7vw,76px); font-weight:800; letter-spacing:-2px; line-height:1.0; margin-bottom:20px; animation:fadeUp .6s ease .1s both; }
+  .grad { background:linear-gradient(90deg,var(--green),var(--cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .hero-sub { font-size:clamp(15px,2vw,19px); color:var(--light); max-width:520px; margin:0 auto 36px; line-height:1.6; font-weight:300; animation:fadeUp .6s ease .2s both; }
+
+  /* FORM */
+  .signup-form { max-width:480px; margin:0 auto; animation:fadeUp .6s ease .3s both; }
+  .form-row { display:flex; gap:10px; margin-bottom:12px; }
+  .form-input { flex:1; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:12px; padding:14px 18px; color:var(--white); font-size:15px; font-family:'DM Sans',sans-serif; outline:none; transition:border-color .2s; }
+  .form-input::placeholder { color:var(--muted); }
+  .form-input:focus { border-color:rgba(0,245,160,0.4); }
+  .form-select { flex:1; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:12px; padding:14px 18px; color:var(--white); font-size:14px; font-family:'DM Sans',sans-serif; outline:none; cursor:pointer; }
+  .form-select option { background:#0d1321; }
+  .btn-cta { width:100%; background:linear-gradient(90deg,var(--green),var(--cyan)); color:#050810; font-family:'Syne',sans-serif; font-size:16px; font-weight:700; padding:16px; border-radius:12px; border:none; cursor:pointer; transition:all .3s; box-shadow:0 8px 30px rgba(0,245,160,0.3); }
+  .btn-cta:hover { transform:translateY(-2px); box-shadow:0 12px 40px rgba(0,245,160,0.4); }
+  .form-note { font-size:12px; color:var(--muted); text-align:center; margin-top:10px; }
+
+  /* SUCCESS */
+  .success-msg { display:none; background:rgba(0,245,160,0.08); border:1px solid rgba(0,245,160,0.25); border-radius:16px; padding:24px; text-align:center; margin-top:16px; }
+  .success-msg.show { display:block; animation:fadeUp .4s ease; }
+  .success-icon { font-size:36px; margin-bottom:10px; }
+  .success-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; color:var(--green); margin-bottom:6px; }
+  .success-sub { font-size:13px; color:var(--light); }
+
+  /* SOCIAL SHARE */
+  .section { max-width:900px; margin:0 auto; padding:80px 24px; position:relative; z-index:1; }
+  .sec-tag { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--green); margin-bottom:14px; font-weight:600; }
+  .sec-title { font-family:'Syne',sans-serif; font-size:clamp(24px,3.5vw,38px); font-weight:800; letter-spacing:-1px; margin-bottom:40px; }
+
+  .channels-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .channel-card { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:28px; transition:all .25s; }
+  .channel-card:hover { border-color:rgba(0,245,160,0.2); transform:translateY(-3px); }
+  .ch-header { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+  .ch-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+  .ch-name { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--white); }
+  .ch-platform { font-size:12px; color:var(--muted); }
+  .ch-content { background:rgba(0,0,0,0.2); border-radius:12px; padding:16px; font-size:13px; color:var(--light); line-height:1.7; margin-bottom:16px; font-style:italic; border-left:2px solid rgba(0,245,160,0.3); }
+  .ch-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+  .ch-tag { font-size:11px; color:var(--green); background:rgba(0,245,160,0.08); padding:3px 10px; border-radius:20px; }
+  .copy-ch { width:100%; background:rgba(0,245,160,0.06); border:1px solid rgba(0,245,160,0.15); color:var(--green); font-family:'Syne',sans-serif; font-size:12px; font-weight:600; padding:10px; border-radius:10px; cursor:pointer; transition:all .2s; }
+  .copy-ch:hover { background:rgba(0,245,160,0.12); }
+
+  /* PERKS */
+  .perks-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .perk { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; text-align:center; transition:all .2s; }
+  .perk:hover { border-color:rgba(0,245,160,0.2); transform:translateY(-2px); }
+  .perk-icon { font-size:28px; margin-bottom:10px; }
+  .perk-title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:var(--white); margin-bottom:5px; }
+  .perk-desc { font-size:11px; color:var(--muted); line-height:1.5; }
+
+  /* COUNTER */
+  .counter-bar { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:28px 32px; display:flex; align-items:center; gap:32px; margin-bottom:60px; }
+  .counter-stat { text-align:center; }
+  .counter-num { font-family:'Syne',sans-serif; font-size:36px; font-weight:800; background:linear-gradient(90deg,var(--green),var(--cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .counter-lbl { font-size:12px; color:var(--muted); margin-top:4px; }
+  .counter-progress { flex:1; }
+  .progress-label { display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px; color:var(--muted); }
+  .progress-bar { height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--green),var(--cyan)); border-radius:4px; width:0%; transition:width 1.5s ease; }
+
+  /* DIVIDER */
+  .divider { height:1px; background:var(--border); max-width:900px; margin:0 auto; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  @media(max-width:640px) {
+    .channels-grid,.perks-grid{grid-template-columns:1fr;}
+    .form-row{flex-direction:column;}
+    .counter-bar{flex-direction:column;gap:16px;}
+    nav{padding:14px 20px;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <svg width="22" height="22" viewBox="0 0 64 64" fill="none">
+      <circle cx="32" cy="32" r="30" stroke="url(#gnav)" stroke-width="2.5"/>
+      <polyline points="8,32 18,32 22,20 28,44 34,28 38,36 42,32 56,32" stroke="url(#gnav)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <defs><linearGradient id="gnav" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#00f5a0"/><stop offset="100%" stop-color="#00d4ff"/></linearGradient></defs>
+    </svg>
+    <span class="logo-text"><span class="p">Pulse</span><span class="a">AI</span></span>
+  </div>
+  <span class="nav-badge">🔴 Bêta ouverte</span>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div>
+    <div class="hero-counter"><span class="dot"></span> <span id="counter">247</span> personnes déjà inscrites</div>
+    <h1 class="hero-title">Sois parmi les<br/>premiers à tester<br/><span class="grad">PulseAI</span></h1>
+    <p class="hero-sub">Rejoins notre programme bêta exclusif. Accès gratuit, en avant-première, pour façonner l'avenir de la santé intelligente.</p>
+
+    <div class="signup-form">
+      <div class="form-row">
+        <input class="form-input" type="text" id="fname" placeholder="Prénom" />
+        <input class="form-input" type="email" id="femail" placeholder="Email" />
+      </div>
+      <div class="form-row">
+        <select class="form-select" id="fprofile">
+          <option value="">Ton profil...</option>
+          <option>Patient chronique</option>
+          <option>Jeune adulte (18–35)</option>
+          <option>Senior (60+)</option>
+          <option>Aidant familial</option>
+          <option>Professionnel de santé</option>
+          <option>Autre</option>
+        </select>
+        <select class="form-select" id="fchannel">
+          <option value="">Comment tu nous as trouvés ?</option>
+          <option>TikTok</option>
+          <option>Instagram</option>
+          <option>Bouche à oreille</option>
+          <option>Google</option>
+          <option>Autre</option>
+        </select>
+      </div>
+      <button class="btn-cta" onclick="signup()">Rejoindre la bêta — C'est gratuit →</button>
+      <p class="form-note">🔒 Aucune carte bancaire requise · Données protégées RGPD</p>
+
+      <div class="success-msg" id="success">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">Tu es sur la liste !</div>
+        <div class="success-sub">On t'enverra un accès exclusif dès le lancement. Partage PulseAI avec tes proches pour monter dans la file d'attente !</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- AVANTAGES BÊTA -->
+<section class="section">
+  <div class="sec-tag">Avantages bêta-testeurs</div>
+  <h2 class="sec-title">Ce que tu gagnes en rejoignant maintenant.</h2>
+
+  <div class="perks-grid">
+    <div class="perk">
+      <div class="perk-icon">🆓</div>
+      <div class="perk-title">Accès gratuit à vie</div>
+      <div class="perk-desc">Plan Pro offert pour tous les bêta-testeurs, pour toujours</div>
+    </div>
+    <div class="perk">
+      <div class="perk-icon">⚡</div>
+      <div class="perk-title">Accès en avant-première</div>
+      <div class="perk-desc">Teste les nouvelles fonctionnalités avant tout le monde</div>
+    </div>
+    <div class="perk">
+      <div class="perk-icon">🎙️</div>
+      <div class="perk-title">Ton avis compte</div>
+      <div class="perk-desc">Participe directement à l'amélioration du produit</div>
+    </div>
+    <div class="perk">
+      <div class="perk-icon">🏆</div>
+      <div class="perk-title">Badge "Fondateur"</div>
+      <div class="perk-desc">Badge exclusif affiché sur ton profil en tant que bêta-testeur</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PROGRESSION -->
+<section class="section">
+  <div class="sec-tag">Objectif bêta</div>
+  <h2 class="sec-title">Cap sur 1 000 bêta-testeurs.</h2>
+  <div class="counter-bar">
+    <div class="counter-stat"><div class="counter-num" id="cnt1">247</div><div class="counter-lbl">Inscrits</div></div>
+    <div class="counter-stat"><div class="counter-num">1 000</div><div class="counter-lbl">Objectif</div></div>
+    <div class="counter-progress">
+      <div class="progress-label"><span>Progression</span><span id="pct">24.7%</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="pfill"></div></div>
+    </div>
+    <div class="counter-stat"><div class="counter-num">753</div><div class="counter-lbl">Places restantes</div></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CONTENUS SOCIAUX -->
+<section class="section">
+  <div class="sec-tag">Partage & Recrute</div>
+  <h2 class="sec-title">Textes prêts pour chaque plateforme.</h2>
+
+  <div class="channels-grid">
+
+    <!-- TIKTOK -->
+    <div class="channel-card">
+      <div class="ch-header">
+        <div class="ch-icon" style="background:rgba(255,0,80,0.1)">🎵</div>
+        <div><div class="ch-name">TikTok</div><div class="ch-platform">Script vidéo 30–60 sec</div></div>
+      </div>
+      <div class="ch-content" id="tiktok-text">"Tu sais quoi ? J'en avais marre de perdre mes ordonnances, d'oublier mes rendez-vous, de pas comprendre ce que me disait mon médecin...
+
+Alors j'ai créé PulseAI. Un assistant IA de santé, disponible 24h/24, qui centralise tout ton suivi médical, qui t'accompagne sur ta santé mentale, et qui t'explique les maladies en français simple.
+
+C'est gratuit. C'est pour tout le monde. Et on cherche 1 000 bêta-testeurs.
+
+Lien en bio 👆"</div>
+      <div class="ch-tags">
+        <span class="ch-tag">#PulseAI</span>
+        <span class="ch-tag">#SantéIA</span>
+        <span class="ch-tag">#HealthTech</span>
+        <span class="ch-tag">#AppSanté</span>
+        <span class="ch-tag">#BêtaTest</span>
+      </div>
+      <button class="copy-ch" onclick="copyText('tiktok-text', this)">Copier le script</button>
+    </div>
+
+    <!-- INSTAGRAM -->
+    <div class="channel-card">
+      <div class="ch-header">
+        <div class="ch-icon" style="background:rgba(225,48,108,0.1)">📸</div>
+        <div><div class="ch-name">Instagram</div><div class="ch-platform">Caption post / Reel / Story</div></div>
+      </div>
+      <div class="ch-content" id="insta-text">🫀 Et si ton téléphone devenait ton meilleur allié santé ?
+
+J'ai lancé PulseAI — l'assistant IA qui prend soin de toi au quotidien :
+✅ Suivi médical centralisé
+✅ Santé mentale & nutrition
+✅ Infos maladies en langage simple
+✅ Disponible 24h/24, gratuit
+
+On ouvre la bêta à 1 000 personnes seulement.
+👉 Lien en bio pour rejoindre la liste.
+
+Partage à quelqu'un qui en a besoin 💚</div>
+      <div class="ch-tags">
+        <span class="ch-tag">#PulseAI</span>
+        <span class="ch-tag">#Santé</span>
+        <span class="ch-tag">#BienÊtre</span>
+        <span class="ch-tag">#IA</span>
+        <span class="ch-tag">#Innovation</span>
+      </div>
+      <button class="copy-ch" onclick="copyText('insta-text', this)">Copier la caption</button>
+    </div>
+
+    <!-- BOUCHE À OREILLE -->
+    <div class="channel-card">
+      <div class="ch-header">
+        <div class="ch-icon" style="background:rgba(0,245,160,0.1)">💬</div>
+        <div><div class="ch-name">WhatsApp / SMS</div><div class="ch-platform">Message de proche à proche</div></div>
+      </div>
+      <div class="ch-content" id="sms-text">Salut ! Je teste en ce moment PulseAI, une application IA de santé vraiment bien faite.
+
+Ça centralise les RDV, les médicaments, répond aux questions de santé 24h/24 et explique les maladies simplement.
+
+C'est gratuit et ils cherchent des bêta-testeurs. Tu peux t'inscrire ici : pulseai.health/beta
+
+Je pense que ça peut vraiment t'aider !</div>
+      <div class="ch-tags">
+        <span class="ch-tag">Personnel</span>
+        <span class="ch-tag">Direct</span>
+        <span class="ch-tag">Haut taux de conversion</span>
+      </div>
+      <button class="copy-ch" onclick="copyText('sms-text', this)">Copier le message</button>
+    </div>
+
+    <!-- EMAIL / NEWSLETTER -->
+    <div class="channel-card">
+      <div class="ch-header">
+        <div class="ch-icon" style="background:rgba(0,212,255,0.1)">📧</div>
+        <div><div class="ch-name">Email / Newsletter</div><div class="ch-platform">Email de recrutement</div></div>
+      </div>
+      <div class="ch-content" id="email-text">Objet : J'ai lancé quelque chose qui pourrait t'aider
+
+Bonjour,
+
+Je t'écris pour te parler de PulseAI, une application IA de santé que j'ai créée pour aider des millions de personnes à mieux suivre leur santé.
+
+En quelques mots : PulseAI centralise ton suivi médical, t'accompagne sur la santé mentale et te donne accès à des infos médicales claires, 24h/24.
+
+Je cherche 1 000 bêta-testeurs pour améliorer l'application avant le lancement officiel. C'est totalement gratuit et tu auras accès à toutes les fonctionnalités premium.
+
+Tu peux t'inscrire ici : pulseai.health/beta
+
+Merci de m'aider à construire quelque chose qui peut vraiment changer des vies.
+
+À bientôt,
+[Ton prénom]</div>
+      <div class="ch-tags">
+        <span class="ch-tag">Objet accrocheur</span>
+        <span class="ch-tag">Personnalisable</span>
+      </div>
+      <button class="copy-ch" onclick="copyText('email-text', this)">Copier l'email</button>
+    </div>
+
+  </div>
+</section>
+
+<script>
+// Animate progress bar
+window.addEventListener('load', () => {
+  setTimeout(() => { document.getElementById('pfill').style.width = '24.7%'; }, 300);
+});
+
+// Animate counter
+let count = 247;
+setInterval(() => {
+  if(Math.random() > 0.7) {
+    count += Math.floor(Math.random() * 3) + 1;
+    document.getElementById('counter').textContent = count;
+    document.getElementById('cnt1').textContent = count;
+    const pct = (count/1000*100).toFixed(1);
+    document.getElementById('pct').textContent = pct + '%';
+    document.getElementById('pfill').style.width = pct + '%';
+  }
+}, 4000);
+
+function signup() {
+  const name = document.getElementById('fname').value;
+  const email = document.getElementById('femail').value;
+  if(!name || !email) { alert('Merci de remplir ton prénom et ton email !'); return; }
+  count += 1;
+  document.getElementById('counter').textContent = count;
+  document.getElementById('cnt1').textContent = count;
+  document.getElementById('success').classList.add('show');
+  document.querySelector('.btn-cta').textContent = '✓ Tu es inscrit(e) !';
+  document.querySelector('.btn-cta').style.background = 'rgba(0,245,160,0.2)';
+  document.querySelector('.btn-cta').style.color = '#00f5a0';
+}
+
+function copyText(id, btn) {
+  navigator.clipboard.writeText(document.getElementById(id).innerText);
+  const orig = btn.textContent;
+  btn.textContent = '✓ Copié !';
+  setTimeout(() => btn.textContent = orig, 2000);
+}
+</script>
+</body>
+</html>
