@@ -856,11 +856,15 @@
   function setLang(lang) {
     const other = lang === 'fr' ? 'en' : 'fr';
 
-    document.querySelectorAll('[data-lang="' + lang + '"]').forEach(el => {
-      el.style.display = el.tagName === 'A' ? 'inline' : '';
-    });
-    document.querySelectorAll('[data-lang="' + other + '"]').forEach(el => {
-      el.style.display = 'none';
+    document.querySelectorAll('[data-lang]').forEach(el => {
+      const elLang = el.getAttribute('data-lang');
+      if (elLang === lang) {
+        if (el.tagName === 'A') el.style.display = 'inline';
+        else if (el.tagName === 'DIV' || el.tagName === 'SECTION') el.style.display = 'block';
+        else el.style.display = '';
+      } else {
+        el.style.display = 'none';
+      }
     });
 
     document.getElementById('btn-fr').classList.toggle('active', lang === 'fr');
